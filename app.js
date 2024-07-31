@@ -3,9 +3,19 @@ const express = require('express');
 // Instantiate Express
 const app = express();
 
+// Mongoose
+const mongoose = require('mongoose');
+
 // routes
 const productsRoutes = require('./api/routes/products');
 const ordersRoutes = require('./api/routes/orders');
+
+// Connect to mongoose
+mongoose.connect(
+	'mongodb+srv://shubhanktyagi:'
+	+ process.env.MongoAtlasPW
+	+ '@e-store.trvvhfo.mongodb.net/?retryWrites=true&w=majority&appName=E-Store'
+);
 
 // Middleware
 const morgan = require('morgan');

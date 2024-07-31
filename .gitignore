@@ -50,3 +50,4 @@ coverage
 
 # Editors temporary files
 *~
+nodemon.json
