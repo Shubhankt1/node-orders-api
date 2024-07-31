@@ -17,7 +17,7 @@ router.post('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
 	const id = req.params.id;
 	res.status(200).json({
-		message: 'Order Details Here!',
+		message: 'Order Details Found Here!',
 		id: id
 	});
 });
@@ -25,7 +25,7 @@ router.get('/:id', (req, res, next) => {
 router.delete('/:id', (req, res, next) => {
 	const id = req.params.id;
 	res.status(200).json({
-		message: 'Deleted Order!',
+		message: 'Deleted the Order!',
 		id: id
 	});
 });
