@@ -10,10 +10,45 @@ const Product = require('../models/product');
 router.get('/', (req, res, next) => {
 	Product
 		.find()
+		.select('name price _id')
 		.exec()
 		.then(docs => {
 			console.log("Products:\n", docs);
-			res.status(200).json(docs);
+			const response = {
+				count: docs.length,
+				products: docs.map(doc => {
+					return {
+						name: doc.name,
+						price: doc.price,
+						_id: doc._id,
+						product_requests: {
+							details: {
+								type: 'GET',
+								url: 'http://localhost:3000/products/' + doc._id
+							},
+							delete: {
+								type: 'DELETE',
+								url: 'http://localhost:3000/products/' + doc._id
+							},
+							update: {
+								type: 'PATCH',
+								url: 'http://localhost:3000/products/' + doc._id,
+								body: {
+									name: "updated name or ignore",
+									price: "updated price or ignore"
+								}
+							}
+						}
+					}
+				}),
+				requests: {
+					add: {
+						type: 'POST',
+						url: 'http://localhost:3000/products/'
+					}
+				}
+			};
+			res.status(200).json(response);
 		})
 		.catch(err => {
 			console.log("Error:\n", err);
@@ -38,10 +73,39 @@ router.post('/', (req, res, next) => {
 		.save()
 		.then(result => {
 			console.log(result);
-			res.status(200).json({
+			const response = {
 				message: 'Added product here.',
-				createdProduct: product
-			});
+				createdProduct: {
+					name: result.name,
+					price: result.price,
+					_id: result._id,
+					product_requests: {
+						details: {
+							type: 'GET',
+							url: 'http://localhost:3000/products/' + result._id
+						},
+						delete: {
+							type: 'DELETE',
+							url: 'http://localhost:3000/products/' + result._id
+						},
+						update: {
+							type: 'PATCH',
+							url: 'http://localhost:3000/products/' + result._id,
+							body: {
+								name: "updated name or ignore",
+								price: "updated price or ignore"
+							}
+						}
+					}
+				},
+				requests: {
+					list: {
+						type: 'GET',
+						url: 'http://localhost:3000/products/'
+					}
+				}
+			};
+			res.status(201).json(response);
 		})
 		.catch(err => {
 			console.log(err);
@@ -55,11 +119,43 @@ router.post('/', (req, res, next) => {
 router.get('/:id', (req, res, next) => {
 	const id = req.params.id;
 	Product.findById(id)
+		.select('name price _id')
 		.exec()
 		.then(doc => {
 			if (doc) {
 				console.log('From Database:\n', doc);
-				res.status(200).json(doc);
+				const response = {
+					product: {
+						name: doc.name,
+						price: doc.price,
+						_id: doc._id,
+						product_requests: {
+							delete: {
+								type: 'DELETE',
+								url: 'http://localhost:3000/products/' + doc._id
+							},
+							update: {
+								type: 'PATCH',
+								url: 'http://localhost:3000/products/' + doc._id,
+								body: {
+									name: "updated name or ignore",
+									price: "updated price or ignore"
+								}
+							}
+						}
+					},
+					requests: {
+						list: {
+							type: 'GET',
+							url: 'http://localhost:3000/products/'
+						},
+						add: {
+							type: 'POST',
+							url: 'http://localhost:3000/products/'
+						}
+					}
+				};
+				res.status(200).json(response);
 			} else {
 				console.log('No Produt found with ID: ', id);
 				res.status(404).json({
@@ -85,7 +181,35 @@ router.patch('/:id', (req, res, next) => {
 		.exec()
 		.then(result => {
 			console.log("Result:\n", result);
-			res.status(200).json(result);
+			const response = {
+				message: "Updaded Product Successfully!",
+				product: {
+					name: result.name,
+					price: result.price,
+					_id: result._id,
+					product_requests: {
+						details: {
+							type: 'GET',
+							url: 'http://localhost:3000/products/' + result._id
+						},
+						delete: {
+							type: 'DELETE',
+							url: 'http://localhost:3000/products/' + result._id
+						},
+					}
+				},
+				requests: {
+					list: {
+						type: 'GET',
+						url: 'http://localhost:3000/products/'
+					},
+					add: {
+						type: 'POST',
+						url: 'http://localhost:3000/products/'
+					}
+				}
+			};
+			res.status(200).json(response);
 		})
 		.catch(err => {
 			console.log("Error:\n", err);
@@ -103,7 +227,20 @@ router.delete('/:id', (req, res, next) => {
 		.exec()
 		.then(result => {
 			console.log(result);
-			res.status(200).json(result);
+			res.status(200).json({
+				message: "Product Deleted!",
+				result: result,
+				requests: {
+					list: {
+						type: 'GET',
+						url: 'http://localhost:3000/products/'
+					},
+					add: {
+						type: 'POST',
+						url: 'http://localhost:3000/products/'
+					}
+				}
+			});
 		})
 		.catch(err => {
 			console.log("Error:\n", err);
