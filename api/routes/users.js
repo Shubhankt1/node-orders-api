@@ -10,8 +10,12 @@ const mongoose = require("mongoose");
 // BCrypt
 const bcrypt = require("bcrypt");
 
+// JWT
+const jwt = require("jsonwebtoken");
+
 // User instance
 const User = require("../models/user");
+const user = require("../models/user");
 
 // hashing function.
 async function hashPassword(password) {
@@ -23,6 +27,17 @@ async function hashPassword(password) {
     .catch((err) => {
       console.log("BCrypt Error:\n", err);
       throw Exception(err);
+    });
+}
+
+// Compare hash
+async function compareHash(plainTextPw, password) {
+  return await bcrypt
+    .compare(plainTextPw, password)
+    .then((result) => result)
+    .catch((err) => {
+      console.log(err);
+      return false;
     });
 }
 
@@ -57,6 +72,44 @@ router.post("/signup", (req, res, next) => {
             res.status(500).json({ error: err });
           });
       }
+    });
+});
+
+router.post("/login", (req, res, next) => {
+  User.find({ email: req.body.email })
+    .exec()
+    .then(async (user) => {
+      if (user.length < 1) {
+        console.log("No user found!");
+        return res.status(401).json({
+          message: "Authentication Failed!",
+        });
+      }
+      const pwMatch = await compareHash(req.body.password, user[0].password);
+      if (pwMatch) {
+        console.log("Password Matched.");
+        const token = jwt.sign(
+          {
+            name: user[0].name,
+            email: user[0].email,
+            userId: user[0]._id,
+          },
+          process.env.JWT_Key,
+          { expiresIn: "1h" }
+        );
+        return res.status(200).json({
+          message: "User successfully logged in.",
+          token: token,
+        });
+      }
+      console.log("Wrong Password.");
+      res.status(401).json({
+        message: "Authentication Failed!",
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: err });
     });
 });
 

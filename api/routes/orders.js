@@ -6,12 +6,15 @@ const router = express.Router();
 // Mongoose
 const mongoose = require("mongoose");
 
+// Middleware
+const checkAuth = require("../middleware/auth");
+
 // Order model
 const Order = require("../models/order");
 const product = require("../models/product");
 
 // Get all Orders
-router.get("/", (req, res, next) => {
+router.get("/", checkAuth, (req, res, next) => {
   Order.find()
     .populate("product", "name")
     .select("product quantity _id")
@@ -52,7 +55,7 @@ router.get("/", (req, res, next) => {
 });
 
 // Add an Order
-router.post("/", (req, res, next) => {
+router.post("/", checkAuth, (req, res, next) => {
   const order = new Order({
     _id: new mongoose.Types.ObjectId(),
     quantity: req.body.quantity,
@@ -94,7 +97,7 @@ router.post("/", (req, res, next) => {
     });
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", checkAuth, (req, res, next) => {
   const id = req.params.id;
   Order.findById(id)
     .populate("product", "_id name price")
@@ -139,7 +142,7 @@ router.get("/:id", (req, res, next) => {
     });
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", checkAuth, (req, res, next) => {
   const id = req.params.id;
   Order.deleteOne({ _id: id })
     .exec()
